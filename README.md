@@ -1,3 +1,3 @@
 # RWCommunication
 
-Usermode<->Kernelmode communication via leveraging own process/s memory
+Usermode<->Kernelmode communication via leveraging own usermode process/s memory
