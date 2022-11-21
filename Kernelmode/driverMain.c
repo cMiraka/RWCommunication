@@ -69,13 +69,12 @@ typedef struct _CustomStructure {
 	int targetProcessID;
 } CustomStructure, * PCustomStructure;
 
+#define ReadMemory 0x1337
 #define WriteMemory 0x1337 + 0x8
 
 NTSTATUS CustomDriverEntry(
 	_In_ PDRIVER_OBJECT  kdmapperParam1,
 	_In_ PUNICODE_STRING kdmapperParam2
-
-#define ReadMemory 0x1337
 )
 {
 	UNREFERENCED_PARAMETER(kdmapperParam1);
@@ -102,12 +101,14 @@ NTSTATUS CustomDriverEntry(
 		switch (ReadStruct.RequestID) {
 		case ReadMemory:
 			dbg("ReadMemory called!");
-
+			break;
 		case WriteMemory:
 			dbg("WriteMemory called!");
-
+			break;
 		default:
 			dbg("Zero calls!");
+			break;
+
 		}
 
 	}
