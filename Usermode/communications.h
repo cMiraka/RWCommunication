@@ -23,7 +23,7 @@ public:
 		WriteProcessMemory(CurrentProcessHandle, &StructureInit, &RequestStructure, sizeof(MyStructure), 0);
 	}
 
-	void ReadMemoryDummy(){
+	void ReadMemoryDummy() {
 		MyStructure Requests;
 		Requests.myProcessID = 1337;
 		Requests.targetProcessID = 1337;
