@@ -11,6 +11,7 @@ void MainThread()
 {
 	NTSTATUS Status = STATUS_UNSUCCESSFUL;
 
+// TODO: Find more dynamic way to find the process, maybe query thru all processes and find our one with some unique traits
 	DWORD64 ProcessId = GetProcessIdFromName(L"Usermode.exe");
 	dbg("ProcessId: %llu", ProcessId);
 
@@ -30,10 +31,11 @@ void MainThread()
 
 		MyStructure ReadStruct;
 
+
+// TODO: Try replacing it with MmCopyVirtualMemory for optimisation/speed
+// TODO: Find more dynamic way to find the address
 		size_t Size = 0;
 		ReadProcessMemory(ProcessId, (uintptr_t)ImageBase + 0x3630, &ReadStruct, sizeof(MyStructure), &Size);
-// TODO: Try replacing it with MmCopyVirtualMemory
-
 
 // TODO: Use switch cases 
 		if (ReadStruct.RequestID == ReadMemoryCode) {
