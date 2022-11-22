@@ -33,10 +33,10 @@ void MainThread()
 		MyStructure ReadStruct;
 
 
-// TODO: Try replacing it with MmCopyVirtualMemory for optimisation/speed
+// TODO: Try replacing it with MmCopyVirtualMemory for more optimisation/speed?
 // TODO: Find more dynamic way to find the address
 		size_t Size = 0;
-		ReadProcessMemory(ProcessId, (uintptr_t)ImageBase + 0x3630, &ReadStruct, sizeof(MyStructure), &Size);
+		ReadProcessMemory(ProcessId, (uintptr_t)ImageBase + 0x3630 /* Hard coded offset to the MyStruct StructureInit global in the usermode application*\, &ReadStruct, sizeof(MyStructure), &Size);
 
 // TODO: Use switch cases 
 		if (ReadStruct.RequestID == ReadMemoryCode) {
