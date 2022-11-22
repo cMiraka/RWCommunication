@@ -32,7 +32,10 @@ void MainThread()
 
 		size_t Size = 0;
 		ReadProcessMemory(ProcessId, (uintptr_t)ImageBase + 0x3630, &ReadStruct, sizeof(MyStructure), &Size);
+// TODO: Try replacing it with MmCopyVirtualMemory
 
+
+// TODO: Use switch cases 
 		if (ReadStruct.RequestID == ReadMemoryCode) {
 			dbg("ReadMemory Called!");
 		}
