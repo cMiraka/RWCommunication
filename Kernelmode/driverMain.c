@@ -57,7 +57,7 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT Param1, _In_ PUNICODE_STRING Param2)
 	OBJECT_ATTRIBUTES object_attribues;
 	InitializeObjectAttributes(&object_attribues, NULL, OBJ_KERNEL_HANDLE, NULL, NULL);
 
-// Hide system thread https://secret.club/2021/01/12/callout.html and more
+// Hide system thread https://secret.club/2021/01/12/callout.html and more or just don't use thread tbh
 	NTSTATUS status = PsCreateSystemThread(&thread_handle, 0, &object_attribues, NULL, NULL, &MainThread, NULL);
 
 	return STATUS_UNSUCCESSFUL;
