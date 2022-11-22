@@ -1,11 +1,12 @@
 #include <ntddk.h>
-
 #include <minwindef.h>
 #include "structs.h"
 #include "myntapi.h"
 #include "imports.h"
 #include "custom_crt.h"
 #include "physmem.h"
+
+// IMPORTANT TODO: Make a global to cache/store the directory base for the physical read/write calls.
 
 void MainThread() 
 {
