@@ -277,3 +277,50 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
 	LARGE_INTEGER OtherTransferCount;
 } SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;;
 
+DWORD64 GetProcessIdFromName(PWCHAR ProcName) {
+	NTSTATUS result;
+	PVOID infoBuffer = NULL;
+	PSYSTEM_PROCESS_INFORMATION procSysInfo = NULL;
+	ULONG retLen = 0;
+	DWORD64 retVal = 0;
+
+	result = ZwQuerySystemInformation(system_process_information, NULL, 0, &retLen);
+	if (!retLen || result != 0xC0000004) {
+		return 0;
+	}
+
+	while (result == 0xC0000004) {
+		retLen += 0x1000;
+		infoBuffer = ExAllocatePoolWithTag(NonPagedPool, retLen, 'LieH');
+		if (infoBuffer == NULL) {
+			return 0;
+		}
+
+		result = ZwQuerySystemInformation(system_process_information, infoBuffer, retLen, &retLen);
+		if (!NT_SUCCESS(result)) {
+			ExFreePoolWithTag(infoBuffer, 'LieH');
+			infoBuffer = NULL;
+		}
+	}
+
+	if (!NT_SUCCESS(result)) {
+		return 0;
+	}
+
+	procSysInfo = (PSYSTEM_PROCESS_INFORMATION)infoBuffer;
+
+	while (procSysInfo) {
+		if (procSysInfo->ImageName.Buffer != NULL) {
+			if (RlWcsicmp(procSysInfo->ImageName.Buffer, ProcName, TRUE)) {
+				retVal = (DWORD64)procSysInfo->UniqueProcessId;
+				break;
+			}
+		}
+
+		procSysInfo = procSysInfo->NextEntryOffset ? (PSYSTEM_PROCESS_INFORMATION)((PBYTE)procSysInfo + procSysInfo->NextEntryOffset) : NULL;
+	}
+
+	ExFreePoolWithTag(infoBuffer, 'LieH');
+	return retVal;
+}
+

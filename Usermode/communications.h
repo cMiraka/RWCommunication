@@ -1,8 +1,6 @@
 #pragma once
 #include "structs.h"
 
-#define ReadMemory 0x1337
-#define WriteMemory 0x1337 + 0x8
 
 class Communications {
 private:
@@ -27,18 +25,18 @@ public:
 
 	void ReadMemoryDummy(){
 		MyStructure Requests;
-		Requests.myProcessID = 0;
-		Requests.targetProcessID = 0;
-		Requests.RequestID = ReadMemory;
+		Requests.myProcessID = 1337;
+		Requests.targetProcessID = 1337;
+		Requests.RequestID = ReadMemoryCode;
 
 		SendRequest(Requests);
 	}
 
 	void WriteMemoryDummy() {
 		MyStructure Requests;
-		Requests.myProcessID = 0;
-		Requests.targetProcessID = 0;
-		Requests.RequestID = WriteMemory;
+		Requests.myProcessID = 1337;
+		Requests.targetProcessID = 1337;
+		Requests.RequestID = WriteMemoryCode;
 
 		SendRequest(Requests);
 	}

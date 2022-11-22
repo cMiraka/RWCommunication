@@ -1,117 +1,58 @@
 #include <ntddk.h>
-#include "myntapi.h"
+
 #include <minwindef.h>
 #include "structs.h"
+#include "myntapi.h"
 #include "imports.h"
-#include "physmem.h"
 #include "custom_crt.h"
+#include "physmem.h"
 
-#define dbg( content, ... ) DbgPrintEx( 0, 0, "[>] " content, __VA_ARGS__ )
-
-DWORD64 GetProcessIdFromName(PWCHAR ProcName) {
-	NTSTATUS result;
-	PVOID infoBuffer = NULL;
-	PSYSTEM_PROCESS_INFORMATION procSysInfo = NULL;
-	ULONG retLen = 0;
-	DWORD64 retVal = 0;
-
-	result = ZwQuerySystemInformation(system_process_information, NULL, 0, &retLen);
-	if (!retLen || result != 0xC0000004) {
-		return 0;
-	}
-
-	while (result == 0xC0000004) {
-		retLen += 0x1000;
-		infoBuffer = ExAllocatePool(NonPagedPoolNx, retLen);
-		if (infoBuffer == NULL) {
-			return 0;
-		}
-
-		result = ZwQuerySystemInformation(system_process_information, infoBuffer, retLen, &retLen);
-		if (!NT_SUCCESS(result)) {
-			ExFreePool(infoBuffer);
-			infoBuffer = NULL;
-		}
-	}
-
-	if (!NT_SUCCESS(result)) {
-		return 0;
-	}
-
-	procSysInfo = (PSYSTEM_PROCESS_INFORMATION)infoBuffer;
-
-	while (procSysInfo) {
-		if (procSysInfo->ImageName.Buffer != NULL) {
-			if (RlWcsicmp(procSysInfo->ImageName.Buffer, ProcName, TRUE)) {
-				retVal = (DWORD64)procSysInfo->UniqueProcessId;
-				break;
-			}
-		}
-
-		procSysInfo = procSysInfo->NextEntryOffset ? (PSYSTEM_PROCESS_INFORMATION)((PBYTE)procSysInfo + procSysInfo->NextEntryOffset) : NULL;
-	}
-
-	ExFreePool(infoBuffer);
-	return retVal;
-}
-
-
-typedef struct _MyStructure
+void MainThread() 
 {
-	int RequestID;
-	int myProcessID;
-	int targetProcessID;
-} MyStructure, * PMyStructure;
-
-typedef struct _CustomStructure {
-	int RequestID;
-	int myProcessID;
-	int targetProcessID;
-} CustomStructure, * PCustomStructure;
-
-#define ReadMemory 0x1337
-#define WriteMemory 0x1337 + 0x8
-
-NTSTATUS CustomDriverEntry(
-	_In_ PDRIVER_OBJECT  kdmapperParam1,
-	_In_ PUNICODE_STRING kdmapperParam2
-)
-{
-	UNREFERENCED_PARAMETER(kdmapperParam1);
-	UNREFERENCED_PARAMETER(kdmapperParam2);
-
-	DbgPrintEx(0, 0, "Hello world!");
+	NTSTATUS Status = STATUS_UNSUCCESSFUL;
 
 	DWORD64 ProcessId = GetProcessIdFromName(L"Usermode.exe");
 	dbg("ProcessId: %llu", ProcessId);
 
-	PEPROCESS MyProcess;
-
-	PsLookupProcessByProcessId(ProcessId, &MyProcess);
-
-	PVOID ImageBase = PsGetProcessSectionBaseAddress(MyProcess);
-
-	while (TRUE)
+	for (;;)
 	{
+		while (ProcessId == 0)
+			ProcessId = GetProcessIdFromName(L"Usermode.exe");
+
+		PEPROCESS MyProcess;
+
+		Status = PsLookupProcessByProcessId(ProcessId, &MyProcess);
+
+		if (!NT_SUCCESS(Status))
+			break;
+
+		PVOID ImageBase = PsGetProcessSectionBaseAddress(MyProcess);
+
 		MyStructure ReadStruct;
 
 		size_t Size = 0;
 		ReadProcessMemory(ProcessId, (uintptr_t)ImageBase + 0x3630, &ReadStruct, sizeof(MyStructure), &Size);
 
-		switch (ReadStruct.RequestID) {
-		case ReadMemory:
-			dbg("ReadMemory called!");
-			break;
-		case WriteMemory:
-			dbg("WriteMemory called!");
-			break;
-		default:
-			dbg("Zero calls!");
-			break;
-
+		if (ReadStruct.RequestID == ReadMemoryCode) {
+			dbg("ReadMemory Called!");
 		}
-
+		else if (ReadStruct.RequestID == WriteMemoryCode) {
+			dbg("WriteMemory Called!");
+		}
 	}
+}
 
-	return 0;
+NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT Param1, _In_ PUNICODE_STRING Param2)
+{
+	UNREFERENCED_PARAMETER(Param1); UNREFERENCED_PARAMETER(Param2);
+
+	dbg("At entry!");
+
+	HANDLE thread_handle = NULL;
+	OBJECT_ATTRIBUTES object_attribues;
+	InitializeObjectAttributes(&object_attribues, NULL, OBJ_KERNEL_HANDLE, NULL, NULL);
+
+	NTSTATUS status = PsCreateSystemThread(&thread_handle, 0, &object_attribues, NULL, NULL, &MainThread, NULL);
+
+	return STATUS_UNSUCCESSFUL;
 }

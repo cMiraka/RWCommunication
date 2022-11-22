@@ -12,13 +12,14 @@ int main()
 
     while (1)
     {
+        printf("RequestId: %i\n", StructureInit.RequestID);
+        printf("myProcessID: %i\n", StructureInit.myProcessID);
+        printf("targetProcessID: %i\n", StructureInit.targetProcessID);
+
         if (GetAsyncKeyState(VK_F1))
-        {
             Entry.ReadMemoryDummy();
-        }
-        else if (GetAsyncKeyState(VK_F2))
-        {
+
+        if (GetAsyncKeyState(VK_F2))
             Entry.WriteMemoryDummy();
-        }
     }
 }

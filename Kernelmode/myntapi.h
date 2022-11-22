@@ -116,3 +116,5 @@ typedef unsigned long long uintmax_t;
 #define UINTMAX_C(x) UINT64_C(x)
 
 #endif // RC_INVOKED
+
+#define dbg( content, ... ) DbgPrintEx( 0, 0, "[>] " content, __VA_ARGS__ )
